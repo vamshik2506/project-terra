@@ -17,21 +17,21 @@ variable "private_subnet_cidrs" {
   type        = list(string)
   default     = ["10.0.3.0/24", "10.0.4.0/24"]
 }
+
 variable "ami_id" {}
+
 variable "instance_type" {
   default = "t3.micro"
 }
 
-variable "public_subnet_ids" {
-  type = list(string)
-}
+# ✅ Removed: public_subnet_ids & private_subnet_ids
+
 variable "db_name" {}
+
 variable "db_username" {}
+
 variable "db_password" {}
+
 variable "db_instance_class" {
   default = "db.t3.micro"
-}
-
-variable "private_subnet_ids" {
-  type = list(string)
 }
