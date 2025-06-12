@@ -40,13 +40,20 @@ resource "aws_route_table_association" "public_subnet_assoc" {
 }
 
 resource "aws_security_group" "web_sg" {
-  name        = "web-sg"
-  description = "Allow traffic from ALB"
+    name        = "web-sg"
+  description = "Allow HTTP and SSH access"
   vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -98,12 +105,22 @@ resource "aws_security_group" "rds_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
 resource "aws_launch_template" "web" {
   name_prefix   = "web-lt-"
   image_id      = var.ami_id
   instance_type = var.instance_type
   vpc_security_group_ids = [aws_security_group.web_sg.id]
+  key_name = "vamshi-key"  # 🔑 Add this line
+
+  user_data = base64encode(<<-EOF
+  #!/bin/bash
+  apt update -y
+  apt install nginx -y
+  systemctl start nginx
+  systemctl enable nginx
+  echo "<h1>Welcome to Vamshi's Ubuntu + NGINX Server!</h1>" > /var/www/html/index.html
+EOF
+)
 
   lifecycle {
     create_before_destroy = true
@@ -116,6 +133,7 @@ resource "aws_launch_template" "web" {
     }
   }
 }
+
 
 resource "aws_autoscaling_group" "web_asg" {
   desired_capacity     = 2
@@ -153,7 +171,16 @@ resource "aws_lb_target_group" "web_tg" {
   vpc_id      = aws_vpc.main.id
   target_type = "instance"
 }
+resource "aws_lb_listener" "web_http" {
+  load_balancer_arn = aws_lb.web_alb.arn
+  port              = 80
+  protocol          = "HTTP"
 
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.web_tg.arn
+  }
+}
 resource "aws_db_subnet_group" "default" {
   name       = "rds-subnet-group"
   subnet_ids = aws_subnet.private[*].id
