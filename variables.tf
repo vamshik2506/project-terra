@@ -25,3 +25,13 @@ variable "instance_type" {
 variable "public_subnet_ids" {
   type = list(string)
 }
+variable "db_name" {}
+variable "db_username" {}
+variable "db_password" {}
+variable "db_instance_class" {
+  default = "db.t3.micro"
+}
+
+variable "private_subnet_ids" {
+  type = list(string)
+}
