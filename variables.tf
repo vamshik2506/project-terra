@@ -24,12 +24,8 @@ variable "instance_type" {
   default = "t3.micro"
 }
 
-# ✅ Removed: public_subnet_ids & private_subnet_ids
-
 variable "db_name" {}
-
 variable "db_username" {}
-
 variable "db_password" {}
 
 variable "db_instance_class" {
