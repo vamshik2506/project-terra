@@ -37,7 +37,7 @@ resource "aws_autoscaling_group" "web_asg" {
   desired_capacity     = 2
   max_size             = 3
   min_size             = 1
-  vpc_zone_identifier  = var.public_subnet_ids
+  vpc_zone_identifier  = aws_subnet.public[*].id
   launch_template {
     id      = aws_launch_template.web.id
     version = "$Latest"
@@ -56,7 +56,7 @@ resource "aws_lb" "web_alb" {
   name               = "web-alb"
   internal           = false
   load_balancer_type = "application"
-  subnets            = var.public_subnet_ids
+  subnets            = aws_subnet.public[*].id
 
   security_groups    = [aws_security_group.alb_sg.id]
 }
@@ -109,7 +109,7 @@ resource "aws_security_group" "alb_sg" {
 }
 resource "aws_db_subnet_group" "default" {
   name       = "rds-subnet-group"
-  subnet_ids = var.private_subnet_ids
+  subnet_ids = aws_subnet.private[*].id
 }
 
 resource "aws_db_instance" "default" {
@@ -120,7 +120,7 @@ resource "aws_db_instance" "default" {
   name                    = var.db_name
   username                = var.db_username
   password                = var.db_password
-  db_subnet_group_name    = aws_db_subnet_group.default.name
+  db_subnet_group_name    = aws_subnet.private[*].id
   vpc_security_group_ids  = [aws_security_group.rds_sg.id]
   skip_final_snapshot     = true
   publicly_accessible     = false
